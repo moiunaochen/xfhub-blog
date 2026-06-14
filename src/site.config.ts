@@ -3,21 +3,21 @@ import type { CardListData, Config, IntegrationUserConfig, ThemeUserConfig } fro
 export const theme: ThemeUserConfig = {
   // [Basic]
   /** Title for your website. Will be used in metadata and as browser tab title. */
-  title: 'Astro Theme Pure',
+  title: "x枫 Site", // Modified: 替换为 x枫. 的站点标题
   /** Will be used in index page & copyright declaration */
-  author: 'Pure Lab',
+  author: 'x枫.', // Modified: 替换为 x枫. 的作者名
   /** Description metadata for your website. Can be used in page metadata. */
-  description: 'Stay hungry, stay foolish',
+  description: '神明高踞于月，凡人持刀向天', // Modified: 替换为 x枫. 的个人座右铭
   /** The default favicon for your site which should be a path to an image in the `public/` directory. */
   favicon: '/favicon/favicon.ico',
   /** The default social card image for your site which should be a path to an image in the `public/` directory. */
   socialCard: '/images/social-card.png',
   /** Specify the default language for this site. */
   locale: {
-    lang: 'en-US',
-    attrs: 'en_US',
+    lang: 'zh-CN', // Modified: 语言设置为中文以优化 SEO
+    attrs: 'zh_CN',
     // Date locale
-    dateLocale: 'en-US',
+    dateLocale: 'zh-CN',
     dateOptions: {
       day: 'numeric',
       month: 'short',
@@ -36,37 +36,42 @@ export const theme: ThemeUserConfig = {
 
   // Still in test
   head: [
-    /* Telegram channel */
-    // {
-    //   tag: 'meta',
-    //   attrs: { name: 'telegram:channel', content: '@cworld0_cn' },
-    //   content: ''
-    // }
+    /* Modified: 注入 Umami 全站流量统计脚本 */
+    {
+      tag: 'script',
+      attrs: {
+        src: 'https://cloud.umami.is/script.js', // Modified: Umami 统计脚本地址
+        'data-website-id': '6c72483e-399b-4d4d-8a88-2b38c4a53dd7', // Modified: Umami websiteId
+        defer: true
+      },
+      content: ''
+    }
   ],
   customCss: [],
 
   /** Configure the header of your site. */
   header: {
     menu: [
-      { title: 'Blog', link: '/blog' },
-      { title: 'Docs', link: '/docs' },
-      { title: 'Projects', link: '/projects' },
-      { title: 'Links', link: '/links' },
-      { title: 'About', link: '/about' }
+      { title: '文章', link: '/blog' },
+      // Modified: 移除 Docs 菜单项，不再使用文档功能
+      { title: '项目', link: '/projects' },
+      { title: '友链', link: '/links' },
+      { title: '留言', link: '/guestbook' }, // Modified: 新增留言板入口
+      { title: '关于', link: '/about' }
     ]
   },
 
   /** Configure the footer of your site. */
   footer: {
     // Year format
+    // Modified: 页脚版权年份改为自动读取当前年份
     year: `© ${new Date().getFullYear()}`,
-    // year: `© 2019 - ${new Date().getFullYear()}`,
     links: [
       // Registration link
       {
-        title: 'Moe ICP 114514',
-        link: 'https://icp.gov.moe/?keyword=114514',
-        style: 'text-sm' // Uno/TW CSS class
+        title: '渝ICP备2026004250号-1', // Modified: 替换为 x枫. 的真实 ICP 备案号
+        link: 'https://beian.miit.gov.cn/', // Modified: 链接指向工信部备案查询
+        style: 'text-sm'
       },
       // Privacy Policy link
       {
@@ -79,7 +84,7 @@ export const theme: ThemeUserConfig = {
     credits: true,
     /** Optional details about the social media accounts for this site. */
     social: [
-      { icon: 'github', label: 'GitHub', href: 'https://github.com/cworld1/astro-theme-pure' },
+      { icon: 'github', label: 'GitHub', href: 'https://github.com/moiunaochen/xfhub-blog' }, // Modified: 替换为 x枫. 的 GitHub 仓库地址
       { icon: 'rss', label: 'RSS', href: '/rss.xml' }
     ]
   },
@@ -107,19 +112,14 @@ export const integ: IntegrationUserConfig = {
   // https://astro-pure.js.org/docs/integrations/links
   links: {
     // Friend logbook
-    logbook: [
-      { date: '2025-03-16', content: 'Is there a leakage?' },
-      { date: '2025-03-16', content: 'A leakage of what?' },
-      { date: '2025-03-16', content: 'I have a full seat of water, like, full of water!' },
-      { date: '2025-03-16', content: 'Must be the water.' },
-      { date: '2025-03-16', content: "Let's add that to the words of wisdom." }
-    ],
+    logbook: [], // Modified: 清空原作者友链日志记录，保留空数组结构
     // Yourself link info
+    // Modified: 替换为 x枫. 的友链申请信息
     applyTip: [
       { name: 'Name', val: theme.title },
       { name: 'Desc', val: theme.description || 'Null' },
-      { name: 'Link', val: 'https://astro-pure.js.org/' },
-      { name: 'Avatar', val: 'https://astro-pure.js.org/favicon/favicon.ico' }
+      { name: 'Link', val: 'https://xfhub.com' }, // Modified: 替换为 x枫. 的域名
+      { name: 'Avatar', val: 'https://xfhub.com/avatar.png' } // Modified: 替换为 x枫. 的友链头像地址
     ],
     // Cache avatars in `public/avatars/` to improve user experience.
     cacheAvatar: false
@@ -165,7 +165,7 @@ export const integ: IntegrationUserConfig = {
   waline: {
     enable: true,
     // Server service link
-    server: 'https://astro-theme-pure-waline.arthals.ink/',
+    server: 'https://comment.xfhub.com/', // Modified: 替换为 x枫. 的 Waline 评论服务器地址
     // Show meta info for comments
     showMeta: false,
     // Refer https://waline.js.org/en/guide/features/emoji.html

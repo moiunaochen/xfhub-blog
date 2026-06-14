@@ -5,7 +5,7 @@ import Substats from '@/components/about/Substats.astro'
 import ToolSection from '@/components/about/ToolSection.astro'
 
 const headings = [
-  { depth: 2, slug: 'hobbies', text: 'Hobbies' },
+  // { depth: 2, slug: 'hobbies', text: 'Hobbies' }, // Modified: 注释掉已隐藏的目录项，避免 TOC 组件报错
   { depth: 2, slug: 'tools', text: 'Tools' },
   { depth: 2, slug: 'social-networks', text: 'Social Networks' },
   { depth: 2, slug: 'gossips', text: 'Gossips' },
@@ -14,18 +14,19 @@ const headings = [
 ---
 
 <PageLayout title='About' {headings} comment>
-  <p>Developer / Designer</p>
+  {/* Modified: 替换为 x枫. 的个人简介 */}
+  <p class='text-muted-foreground'>Developer / <del>天才交易员</del></p>
   <p>
-    Lorem ipsum dolor sit amet, vidit suscipit at mei. Quem denique mea id. Usu ei regione indoctum
-    dissentiunt, cu meliore fuisset mei, vel quod voluptua ne. Ex dicat impedit mel, at eum oratio
-    possit voluptatum.
+    你好，我是 x枫.。一个有“系统洁癖”的 CS 搬砖人。爱折腾底层技术，也热衷于股票与 Crypto 的技术分析。闲暇之余，习惯用跑步和健身给自己充能，目前正努力学习 English。
   </p>
   <p>
-    Motto: Stay hungry, Stay foolish. <Spoiler>这里可以夹私货，比如为什么要演奏春日影！</Spoiler>
+    {/* Modified: 替换 Motto 为 x枫. 的个人座右铭 */}
+    Motto: Purge the bloat, build for the long haul. <Spoiler>去芜存菁，行稳致远。</Spoiler>
   </p>
-  <Button title='Sponsor Me' class='w-fit' href='/projects#sponsorship' variant='ahead' />
+  <Button title='赞赏我的工作' class='w-fit' href='/projects#sponsorship' variant='ahead' />
 
   {/* general-talk */}
+ {/* 
   <h2 id='hobbies'>Hobbies</h2>
   <ul>
     <li>Lorem ipsum dolor sit amet, vidit suscipit at mei.</li>
@@ -36,13 +37,14 @@ const headings = [
     <li>Ex dicat impedit mel, at eum oratio possit voluptatum.</li>
     <li>Impetus fuisset ullamcorper pri cu, his posse iisque ad, aliquam honestatis usu id.</li>
   </ul>
+  */}
 
   {/* tools */}
   <h2 id='tools'>Tools</h2>
   <p>Current support tools as follow:</p>
   <ToolSection
     class='mb-5'
-    title='Design'
+    title='Creation'
     tools={[
       {
         name: 'Photoshop',
@@ -57,12 +59,6 @@ const headings = [
         icon: import('@/assets/tools/illustrator.svg?raw')
       },
       {
-        name: 'After Effects',
-        description: 'Motion Graphics',
-        href: 'https://www.adobe.com/products/aftereffects',
-        icon: import('@/assets/tools/aftereffects.svg?raw')
-      },
-      {
         name: 'Premiere Pro',
         description: 'Video Editing',
         href: 'https://www.adobe.com/products/premiere',
@@ -70,6 +66,7 @@ const headings = [
       }
     ]}
   />
+  {/* Modified: Productivity 新增 Typora、WindTerm、Tailscale */}
   <ToolSection
     class='mb-5'
     title='Productivity'
@@ -81,25 +78,26 @@ const headings = [
         icon: import('@/assets/tools/chrome.svg?raw')
       },
       {
-        name: 'Firefox',
-        description: 'Browser',
-        href: 'https://www.mozilla.org/en-US/firefox',
-        icon: import('@/assets/tools/firefox.svg?raw')
-      },
-      {
-        name: 'Notion',
-        description: 'Note Taking',
-        href: 'https://www.notion.so/',
-        icon: import('@/assets/tools/notion.svg?raw')
-      },
-      {
         name: 'Typora',
         description: 'Markdown Editor',
         href: 'https://typora.io/',
         icon: import('@/assets/tools/typora.svg?raw')
+      },
+      {
+        name: 'WindTerm',
+        description: 'SSH Client',
+        href: 'https://github.com/nicedoc/windterm',
+        icon: import('@/assets/tools/windterm.svg?raw')
+      },
+      {
+        name: 'Tailscale',
+        description: 'Mesh VPN',
+        href: 'https://tailscale.com/',
+        icon: import('@/assets/tools/tailscale.svg?raw')
       }
     ]}
   />
+  {/* Modified: Development 新增 Cursor、Claude Code、Antigravity、Codex */}
   <ToolSection
     class='mb-5'
     title='Development'
@@ -111,46 +109,47 @@ const headings = [
         icon: import('@/assets/tools/vscode.svg?raw')
       },
       {
-        name: 'Neovim',
-        description: 'IDE',
-        href: 'https://neovim.io/',
-        icon: import('@/assets/tools/neovim.svg?raw')
+        name: 'Cursor',
+        description: 'AI Code Editor',
+        href: 'https://cursor.sh/',
+        icon: import('@/assets/tools/cursor.svg?raw')
       },
       {
-        name: 'Sublime Text',
-        description: 'IDE',
-        href: 'https://www.sublimetext.com/',
-        icon: import('@/assets/tools/sublime.svg?raw')
+        name: 'Claude Code',
+        description: 'AI Assistant',
+        href: 'https://claude.ai/',
+        icon: import('@/assets/tools/claudecode.svg?raw')
       }
     ]}
   />
+  {/* Modified: Environment 新增 Debian、FnOS、Kali Linux */}
   <ToolSection
     class='mb-5'
     title='Environment'
     tools={[
       {
-        name: 'Arch Linux',
-        description: 'Linux Distribution',
-        href: 'https://archlinux.org/',
-        icon: import('@/assets/tools/archlinux.svg?raw')
+        name: 'Windows 11',
+        description: 'ASUS 天选 Air',
+        href: 'https://news.microsoft.com/windows11-general-availability/',
+        icon: import('@/assets/tools/windows11.svg?raw')
       },
       {
         name: 'Ubuntu 24.04 LTS',
-        description: 'Linux Distribution',
+        description: 'Alibaba Cloud',
         href: 'https://ubuntu.com/',
         icon: import('@/assets/tools/ubuntu.svg?raw')
       },
       {
-        name: 'MacOS Tahoe',
-        description: 'MacBook Air',
-        href: 'https://www.apple.com/macos/',
-        icon: import('@/assets/tools/apple.svg?raw')
+        name: 'Debian GNU/Linux 12',
+        description: 'Google Cloud',
+        href: 'https://www.debian.org/',
+        icon: import('@/assets/tools/debian.svg?raw')
       },
       {
-        name: 'Windows 11',
-        description: 'Framework Laptop 16',
-        href: 'https://news.microsoft.com/windows11-general-availability/',
-        icon: import('@/assets/tools/windows11.svg?raw')
+        name: 'Kali Linux',
+        description: 'VM instance',
+        href: 'https://www.kali.org/',
+        icon: import('@/assets/tools/kali.svg?raw')
       }
     ]}
   />
@@ -158,63 +157,66 @@ const headings = [
   {/* social-networks */}
   <h2 id='social-networks'>Social Networks</h2>
   <p>
-    Lorem ipsum dolor sit amet, vidit suscipit at mei. Quem denique mea id. Usu ei regione indoctum
-    dissentiunt, cu meliore fuisset mei, vel quod voluptua ne.
+    你可以在以下平台找到我：
   </p>
   <Substats
     stats={[
       {
         platform: 'GitHub',
         icon: 'github',
-        link: 'https://github.com/cworld1',
+        link: 'https://github.com/moiunaochen', // Modified: 替换为 x枫. 的 GitHub 主页
         text: 'followers',
-        api: 'github/cworld1'
+        api: 'github/moiunaochen' // Modified: 替换为 x枫. 的 GitHub 用户名
       },
       {
         platform: 'Telegram',
         icon: 'telegram',
         color: '#2ca5e0',
-        link: 'https://t.me/cworld0_cn',
+        link: 'https://t.me/xmaplea', // Modified: 更新为最新的 Telegram 链接
         text: 'subscribers',
-        api: 'telegram/cworld0_cn'
+        api: 'telegram/xmaplea' // Modified: 更新为最新的 Telegram 用户名
       },
       {
-        platform: 'Steam',
-        icon: 'steam',
-        color: '#50769d',
-        link: 'https://steamcommunity.com/id/cworld',
-        text: 'games',
-        api: 'steamgames/76561199021278120'
+        platform: 'QQ Group',
+        icon: 'hashtag', // Modified: 主题内置无 QQ 图标，暂用 hashtag 替代
+        color: '#12b7f5',
+        link: 'https://qm.qq.com/q/VxGejRJjYA',
+        text: 'members'
+      },
+      {
+        platform: 'Bilibili',
+        icon: 'bilibili',
+        color: '#fb7299',
+        link: 'https://space.bilibili.com/381680680',
+        text: 'followers',
+        api: 'bilibili/381680680'
+      },
+      {
+        platform: 'YouTube',
+        icon: 'youtube',
+        color: '#ff0000',
+        link: 'https://youtube.com/@mzxmapel',
+        text: 'subscribers',
+        api: 'youtube/mzxmapel'
       }
     ]}
   />
 
   {/* gossips */}
   <h2 id='gossips'>Gossips</h2>
-  <Collapse title='Lorem ipsum'>
-    Lorem ipsum dolor sit amet, vidit suscipit at mei. Quem denique mea id. Usu ei regione indoctum
-    dissentiunt, cu meliore fuisset mei, vel quod voluptua ne. Ex dicat impedit mel, at eum oratio
-    possit voluptatum.
+  <Collapse title='为什么叫x枫.'>
+    中二病犯了...
   </Collapse>
 
   {/* about-blog */}
   <h2 id='about-blog'>About Blog</h2>
   <p>Website history:</p>
+  {/* Modified: 清空原作者历史 Timeline，仅保留一条占位记录 */}
   <Timeline
     events={[
       {
-        date: '2024-04-29',
-        content:
-          'Website refactored using <a href="https://astro.build/" target="_blank">Astro</a> and <a href="https://github.com/srleom/astro-theme-resume" target="_blank">Astro Theme Resume</a>'
-      },
-      {
-        date: '2024-07-26',
-        content:
-          'Website abstracted as a theme and published on <a href="https://github.com/cworld1/astro-theme-pure"target="_blank">Github</a>'
-      },
-      {
-        date: '2024-07-27',
-        content: 'Began writing website docs'
+        date: '2026-06-11',
+        content: 'xfhub.com 架构迁移与重构完成。基于 Astro Pure 主题完成数字化安全资产升级，全站打通 GPG 签名。'
       }
     ]}
   />
@@ -223,7 +225,7 @@ const headings = [
     technical support provided by the following excellent projects/service providers:
   </p>
   <ul>
-    <li>Domain: <a href='#' target='_blank'>Vercel</a></li>
+    <li>Domain: <a href='#' target='_blank'>xfhub.com</a></li>
     <li>
       Framework & Theme: <a href='https://astro.build/' target='_blank'>Astro</a> + <a
         href='https://github.com/cworld1/astro-theme-pure'

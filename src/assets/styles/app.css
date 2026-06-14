@@ -39,6 +39,10 @@ html.dark {
   color-scheme: dark;
 }
 
+html.dark body {
+  background: radial-gradient(ellipse at top, #1c1c24 0%, #13131a 100%) !important;
+}
+
 /* Global */
 a {
   transition: color 0.2s ease;

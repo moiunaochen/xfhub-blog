@@ -40,21 +40,5 @@ const blog = defineCollection({
       comment: z.boolean().default(true)
     })
 })
-
-// Define docs collection
-const docs = defineCollection({
-  loader: glob({ base: './src/content/docs', pattern: '**/*.{md,mdx}' }),
-  schema: () =>
-    z.object({
-      title: z.string().max(60),
-      description: z.string().max(160),
-      publishDate: z.coerce.date().optional(),
-      updatedDate: z.coerce.date().optional(),
-      tags: z.array(z.string()).default([]).transform(removeDupsAndLowerCase),
-      draft: z.boolean().default(false),
-      // Special fields
-      order: z.number().default(999)
-    })
-})
-
-export const collections = { blog, docs }
+// Modified: 移除 docs collection，不再使用文档功能
+export const collections = { blog }

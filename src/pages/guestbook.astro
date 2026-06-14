@@ -1,0 +1,264 @@
+---
+import { BackToTop } from 'astro-pure/components/pages'
+import { Button } from 'astro-pure/user'
+import PageLayout from '@/layouts/BaseLayout.astro'
+import { Comment, PageInfo } from '@/components/waline'
+---
+
+<PageLayout meta={{ title: 'Guestbook' }}>
+  <Button title='Back' href='/' variant='back' />
+  <main class='mt-6'>
+    {/* 页面标题 — 居中 */}
+    <div class='animate text-center mb-2'>
+      <h1 class='text-2xl font-medium sm:mb-2 sm:text-3xl'>Guestbook</h1>
+      <PageInfo view comment class='italic justify-center' />
+    </div>
+
+    {/* Hero 欢迎区域 */}
+    <div class='guestbook-hero animate'>
+      <div class='hero-glow'></div>
+      <div class='hero-content'>
+        <h2 class='guestbook-title'>
+          <span class='title-icon'>📝</span>
+          欢迎来到留言板
+        </h2>
+        <div class='guestbook-divider'></div>
+        <div class='guestbook-tips'>
+          <p class='tip-item'>
+            <span class='tip-dot'></span>
+            您可以在这里与我和他人畅所欲言 ✏️
+          </p>
+          <p class='tip-item'>
+            <span class='tip-dot'></span>
+            对本博客提出您认为不足之处 ✅
+          </p>
+          <p class='tip-item'>
+            <span class='tip-dot'></span>
+            您的每条留言都是我成长的动力 💪
+          </p>
+        </div>
+
+        {/* 装饰标签 */}
+        <div class='guestbook-stats'>
+          <div class='stat-card'>
+            <span class='stat-icon'>💬</span>
+            <span class='stat-label'>自由讨论</span>
+          </div>
+          <div class='stat-card'>
+            <span class='stat-icon'>🤝</span>
+            <span class='stat-label'>交流互助</span>
+          </div>
+          <div class='stat-card'>
+            <span class='stat-icon'>💡</span>
+            <span class='stat-label'>建议反馈</span>
+          </div>
+          <div class='stat-card'>
+            <span class='stat-icon'>🎉</span>
+            <span class='stat-label'>留下足迹</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {/* 评论区域 — 居中全宽 */}
+    <div class='animate mx-auto max-w-4xl mt-8 sm:mt-10'>
+      <Comment />
+    </div>
+  </main>
+
+  <BackToTop header='content-header' content='content' />
+</PageLayout>
+
+<style>
+  .guestbook-hero {
+    position: relative;
+    max-width: 56rem;
+    margin: 1.5rem auto 0;
+    border-radius: 1.25rem;
+    border: 1px solid hsl(var(--border) / 0.6);
+    background: hsl(var(--muted) / 0.08);
+    overflow: hidden;
+  }
+
+  /* 顶部渐变光晕 */
+  .hero-glow {
+    position: absolute;
+    top: -60%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80%;
+    height: 200px;
+    background: radial-gradient(
+      ellipse at center,
+      hsl(var(--primary) / 0.08) 0%,
+      transparent 70%
+    );
+    pointer-events: none;
+  }
+
+  .hero-content {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 3rem 2rem 2.5rem;
+  }
+
+  /* 背景书法装饰 */
+  .guestbook-hero::after {
+    content: '富 强 民 主 文 明 和 谐 自 由 平 等 公 正 法 治 爱 国 敬 业 诚 信 友 善';
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 4.5rem;
+    font-weight: 900;
+    letter-spacing: 0.12em;
+    color: hsl(var(--foreground) / 0.03);
+    pointer-events: none;
+    user-select: none;
+    word-break: break-all;
+    line-height: 1.1;
+    overflow: hidden;
+    padding: 0.5rem;
+  }
+
+  .title-icon {
+    display: inline-block;
+    margin-right: 0.35rem;
+    animation: wave 2.5s ease-in-out infinite;
+    transform-origin: 70% 70%;
+  }
+
+  @keyframes wave {
+    0%, 100% { transform: rotate(0deg); }
+    15% { transform: rotate(14deg); }
+    30% { transform: rotate(-8deg); }
+    40% { transform: rotate(10deg); }
+    50% { transform: rotate(-4deg); }
+    60% { transform: rotate(0deg); }
+  }
+
+  .guestbook-title {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: hsl(var(--foreground));
+    margin: 0;
+    letter-spacing: 0.04em;
+  }
+
+  .guestbook-divider {
+    width: 3rem;
+    height: 3px;
+    border-radius: 9999px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      hsl(var(--primary) / 0.6),
+      transparent
+    );
+    margin: 1.25rem 0;
+  }
+
+  .guestbook-tips {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .tip-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-size: 1rem;
+    color: hsl(var(--muted-foreground));
+    margin: 0;
+    transition: all 0.3s ease;
+  }
+
+  .tip-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: hsl(var(--primary) / 0.5);
+    flex-shrink: 0;
+    transition: all 0.3s ease;
+  }
+
+  .tip-item:hover {
+    color: hsl(var(--foreground));
+    transform: translateX(3px);
+  }
+
+  .tip-item:hover .tip-dot {
+    background: hsl(var(--primary));
+    box-shadow: 0 0 6px hsl(var(--primary) / 0.4);
+  }
+
+  .guestbook-stats {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-top: 2rem;
+  }
+
+  .stat-card {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.5rem 1.1rem;
+    border-radius: 9999px;
+    border: 1px solid hsl(var(--border) / 0.5);
+    background: hsl(var(--background) / 0.5);
+    backdrop-filter: blur(12px);
+    font-size: 0.875rem;
+    color: hsl(var(--muted-foreground));
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: default;
+  }
+
+  .stat-card:hover {
+    border-color: hsl(var(--primary) / 0.35);
+    color: hsl(var(--foreground));
+    background: hsl(var(--primary) / 0.06);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px hsl(var(--primary) / 0.08);
+  }
+
+  .stat-icon {
+    font-size: 1.05rem;
+  }
+
+  .stat-label {
+    font-weight: 500;
+    letter-spacing: 0.02em;
+  }
+
+  /* 响应式 */
+  @media (max-width: 640px) {
+    .hero-content {
+      padding: 2rem 1.25rem 2rem;
+    }
+    .guestbook-title {
+      font-size: 1.3rem;
+    }
+    .tip-item {
+      font-size: 0.9rem;
+    }
+    .guestbook-hero::after {
+      font-size: 3rem;
+    }
+    .guestbook-stats {
+      gap: 0.5rem;
+    }
+    .stat-card {
+      padding: 0.4rem 0.85rem;
+      font-size: 0.8rem;
+    }
+  }
+</style>

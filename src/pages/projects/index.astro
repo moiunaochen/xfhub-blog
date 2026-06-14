@@ -1,9 +1,6 @@
 ---
-import { Image } from 'astro:assets'
-
-import { Button, Collapse, Icon } from 'astro-pure/user'
+import { Button, Icon } from 'astro-pure/user'
 import PageLayout from '@/layouts/CommonPage.astro'
-import ProjectSection from '@/components/projects/ProjectSection.astro'
 import Sponsors from '@/components/projects/Sponsors.astro'
 import Sponsorship from '@/components/projects/Sponsorship.astro'
 import alipay from '@/assets/alipay-qrcode.jpg'
@@ -11,43 +8,32 @@ import KeyIcon from '@/assets/icons/key.svg'
 import wechat from '@/assets/wechat-qrcode.jpg'
 
 const headings = [
-  { depth: 2, slug: 'programs', text: 'Programs' },
-  { depth: 2, slug: 'learnings', text: 'Learnings' },
-  { depth: 2, slug: 'others', text: 'Others' },
+  // { depth: 2, slug: 'programs', text: 'Programs' }, // Modified: 注释掉已隐藏的目录项，避免 TOC 组件报错
+  // { depth: 2, slug: 'learnings', text: 'Learnings' },
+  // { depth: 2, slug: 'others', text: 'Others' },
   { depth: 2, slug: 'gpg-signature', text: 'GPG Signature' },
   { depth: 2, slug: 'sponsorship', text: 'Sponsorship' }
 ]
 ---
 
 <PageLayout title='Projects' {headings} view>
-  {/* About astro-pure */}
-  <div class='not-prose flex justify-center'>
-    <a
-      href='/docs/advanced/about' target='_blank'
-      class='flex items-center gap-x-3 rounded-full border bg-background px-4 py-2 text-sm shadow-sm transition-shadow hover:shadow-md'
-    >
-      <span class='size-2 rounded-full bg-green-400'></span>
-      <p class='font-medium text-muted-foreground'>About Astro-Theme-Pure Project</p>
-    </a>
-  </div>
-  <p>Github Activities:</p>
+  {/* Modified: GitHub 活动图用户名替换为 moiunaochen */}
   <p>
-    <Image
-      src='https://ghchart.rshah.org/659eb9/cworld1'
+    <img
+      src='https://ghchart.rshah.org/659eb9/moiunaochen'
       alt='github activities'
-      inferSize
       loading='lazy'
     />
   </p>
   <p>
-    If you think it would be useful or interesting to collaborate on a project, you can donate to
-    support my work or contact me to discuss a project.
+    如果你认为我的工作很有用或有趣，您可以捐赠以支持我的工作，或联系我讨论项目。
   </p>
-  <Button title='Checkout sponsorship' class='w-fit' href='#sponsorship'>
+  <Button title='赞赏我的工作' class='w-fit' href='#sponsorship'>
     <Icon class='size-5' name='receive-money' slot='before' />
   </Button>
 
-  <h2 id='programs'>Programs</h2>
+  {/* Modified: 隐藏原作者 Programs 项目列表，保留结构不删除 */}
+  {/* <h2 id='programs'>Programs</h2>
   <ProjectSection
     projects={[
       {
@@ -93,9 +79,10 @@ const headings = [
         }
       ]}
     />
-  </Collapse>
+  </Collapse> */}
 
-  <h2 id='learnings'>Learnings</h2>
+  {/* Modified: 隐藏原作者 Learnings 和 Others 项目列表，保留结构不删除 */}
+  {/* <h2 id='learnings'>Learnings</h2>
   <ProjectSection
     class='my-2'
     projects={[
@@ -134,54 +121,41 @@ const headings = [
         links: [{ type: 'github', href: 'https://github.com/zhuozhiyongde' }]
       }
     ]}
-  />
+  /> */}
 
   <h2 id='gpg-signature'>GPG Signature</h2>
   <p>
-    You can verify the authenticity of the files I signed by checking the GPG signature. My GPG key
-    is <code>114514</code>, and you can find it on the opengpg key servers or download from it.
+    {/* Modified: 替换 GPG Key ID 为 x枫. 的密钥 */}
+    你可以通过检查 GPG 签名来验证我签名的文件的真实性。我的 GPG 密钥是  <code>35851B7DA7139D6E</code>，你可以在 openpgp 密钥服务器上找到它或从那里下载。
   </p>
-  <Button href='https://keys.openpgp.org/search?q=114514' title='Checkout my key' target='_blank'>
+  {/* Modified: GPG 搜索链接替换为 x枫. 的 Key ID */}
+  <Button href='https://keys.openpgp.org/search?q=35851B7DA7139D6E' title='验证密钥' target='_blank'>
     <KeyIcon class='size-5' slot='before' />
   </Button>
 
   <h2 id='sponsorship'>Sponsorship</h2>
-  <p>Chinese methods: <a href="https://afdian.com/a/cworld" target="_blank">Afadian</a>, Wechat or Alipay </p>
+  {/* Modified: 替换爱发电链接为 x枫. 的个人 Afdian 页面 */}
+  <p>Chinese methods: <a href="https://afdian.com/a/xfhub" target="_blank">Afadian</a>, Wechat or Alipay </p>
   <Sponsorship
     methods={[
       { name: 'WeChat', icon: 'wechat-pay', image: wechat },
       { name: 'Alipay', icon: 'alipay', image: alipay }
     ]}
   />
-  <p>Global methods: <a href="https://ko-fi.com/cworld0" target="_blank">Ko-fi</a> </p>
-  <p>Please leave a message or contact me proactively after sponsorship. My email is:
+  {/* Modified: 替换 Ko-fi 链接为 x枫. 的个人 Ko-fi 页面 */}
+  <p>Global methods: <a href="https://ko-fi.com/xfhub" target="_blank">Ko-fi</a> </p>
+  {/* Modified: 替换 Email Base64 为 x枫. 的邮箱 (xfhub@qq.com) */}
+  <p>赞助后请记得留言或主动联系我。我的电子邮箱是：
     <code style='cursor: pointer'
       onclick='const m=atob(this.textContent);alert(m);window.open(`mailto:${m}`,"_blank")'
-    >Y3dvcmxkMEBxcS5jb20=</code>
-    (click code to transform base64).
+    >eGZodWJAcXEuY29t</code>
+    (点击代码可解密 Base64)。
   </p>
-  <p>Thanks to the following sponsors:</p>
+  <p>衷心感谢以下赞助者的支持：</p>
+  {/* Modified: 清空往期赞助人名单，直接置为空数组 */}
   <Sponsors
     progressMax={50}
-    sponsors={[
-      { name: 'Saneko', platform: 'Wechat', amount: 188, date: '2026-02-25' },
-      { name: '边缘星2020', platform: 'Afdian', amount: 20.26, date: '2026-02-17' },
-      { name: 'Juyao Huang', platform: 'Wechat', amount: 5, date: '2026-01-15' },
-      { name: 'hoochanlon', platform: 'Wechat', amount: 5, date: '2025-11-09' },
-      { name: 'Arthals', platform: 'Wechat', amount: 50, date: '2025-11-06' },
-      { name: '边缘星2020 (byx2020.com)', platform: 'Alipay', amount: 50, date: '2025-11-01' },
-      { name: '小哲', platform: 'Wechat', amount: 50, date: '2025-08-19' },
-      { name: 'Open1V', platform: 'Wechat', amount: 2, date: '2025-08-14' },
-      { name: 'Luis Xu', platform: 'Alipay', amount: 30, date: '2025-08-03' },
-      { name: '顾**', platform: 'Wechat', amount: 28, date: '2025-06-23' },
-      { name: 'Hans J.Han', platform: 'Wechat', amount: 10, date: '2025-04-04' },
-      { name: '**青', platform: 'Alipay', amount: 12, date: '2024-05-21' },
-      { name: 'Anonymous', platform: 'Wechat', amount: 20, date: '2022-04-06' },
-      { name: '华雄', platform: 'QQ', amount: 5, date: '2019-12-30' },
-      { name: '◌', platform: 'QQ', amount: 3, date: '2019-12-30' },
-      // 酷安@暴走の蜗牛
-      { name: 'C*a', amount: 2, date: '2019-07-02' }
-    ]}
+    sponsors={[]}
   />
 </PageLayout>
 

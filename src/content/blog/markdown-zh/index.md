@@ -118,13 +118,13 @@ $$
 
 #### 图片
 
-```markdown
-![CWorld](https://gravatar.loli.net/avatar/1ffe42aa45a6b1444a786b1f32dfa8aa?s=200)
-```
+这是原作者（CWorld）的头像示例：
 
-预览：
+<img src="https://gravatar.loli.net/avatar/1ffe42aa45a6b1444a786b1f32dfa8aa?s=200" alt="CWorld" width="200" />
 
-![CWorld](https://gravatar.loli.net/avatar/1ffe42aa45a6b1444a786b1f32dfa8aa?s=200)
+可以带链接：
+
+<a href="https://github.com/cworld1"><img src="https://gravatar.loli.net/avatar/1ffe42aa45a6b1444a786b1f32dfa8aa?s=200" alt="CWorld" width="200" /></a>
 
 #### 删除线
 
