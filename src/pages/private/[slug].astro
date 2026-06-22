@@ -1,0 +1,169 @@
+---
+import { createHash } from 'node:crypto'
+import type { MarkdownHeading } from 'astro'
+
+// Plugin styles
+import 'katex/dist/katex.min.css'
+
+import { MediumZoom } from 'astro-pure/advanced'
+import { TOC } from 'astro-pure/components/pages'
+import config from 'virtual:config'
+import PageLayout from '@/layouts/ContentLayout.astro'
+
+// 禁止预渲染，确保每次请求都在服务端验证身份
+export const prerender = false
+
+// ============ 认证验证 ============
+const PRIVATE_SECRET = import.meta.env.PRIVATE_SECRET || 'default-secret'
+
+function getAuthToken(secret: string): string {
+  return createHash('sha256').update('private-auth:' + secret).digest('hex')
+}
+
+function isAuthenticated(request: Request): boolean {
+  const cookieHeader = request.headers.get('cookie') || ''
+  const cookies = Object.fromEntries(
+    cookieHeader.split(';').map(c => {
+      const [key, ...val] = c.trim().split('=')
+      return [key, val.join('=')]
+    })
+  )
+  return cookies['private_auth'] === getAuthToken(PRIVATE_SECRET)
+}
+
+// 未认证 → 重定向到密码页
+if (!isAuthenticated(Astro.request)) {
+  return Astro.redirect('/private')
+}
+
+// ============ 加载对应文章 ============
+interface PostFrontmatter {
+  title: string
+  description?: string
+  publishDate: string
+  tags?: string[]
+  language?: string
+  heroImage?: { src: string; color?: string }
+}
+
+interface PostModule {
+  frontmatter: PostFrontmatter
+  Content: any
+  getHeadings: () => MarkdownHeading[]
+}
+
+const { slug } = Astro.params
+
+const postModules = import.meta.glob<PostModule>('/src/private-posts/[!_]*.md', { eager: true })
+const entry = Object.entries(postModules).find(([path]) => path.endsWith(`/${slug}.md`))
+
+if (!entry) {
+  return Astro.redirect('/private')
+}
+
+const [, mod] = entry
+const { frontmatter, Content } = mod
+const headings = mod.getHeadings ? mod.getHeadings() : []
+---
+
+<PageLayout meta={{ title: frontmatter.title }} back='/private'>
+  {!!headings.length && <TOC {headings} slot='sidebar' />}
+
+  <Fragment slot='header'>
+    <div class="private-badge-row">
+      <span class="private-badge">🔒 私密文章</span>
+      {frontmatter.language && <span class="private-lang">{frontmatter.language}</span>}
+    </div>
+    <h1 class='text-2xl font-medium sm:mb-2 sm:text-3xl'>{frontmatter.title}</h1>
+    <p class='text-xs text-muted-foreground italic'>
+      {frontmatter.publishDate}
+      {frontmatter.description && <span> · {frontmatter.description}</span>}
+    </p>
+    {frontmatter.tags && frontmatter.tags.length > 0 && (
+      <div class="private-tags">
+        {frontmatter.tags.map((tag) => (
+          <a href={`/private/tags/${tag}`} class="private-tag-pill z-10 hover:bg-primary/20">{tag}</a>
+        ))}
+      </div>
+    )}
+  </Fragment>
+
+  <Content />
+
+  <Fragment slot='bottom'>
+    <div class="private-footer">
+      <a href="/private" class="private-back-link">
+        ← 返回私密文章列表
+      </a>
+    </div>
+  </Fragment>
+</PageLayout>
+
+{config.integ.mediumZoom.enable && <MediumZoom />}
+
+<style>
+  .private-badge-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .private-badge {
+    display: inline-block;
+    font-size: 0.75rem;
+    padding: 0.2rem 0.625rem;
+    border-radius: 2rem;
+    background: hsl(var(--primary) / 0.1);
+    color: hsl(var(--primary));
+  }
+
+  .private-lang {
+    font-size: 0.75rem;
+    padding: 0.2rem 0.625rem;
+    border-radius: 2rem;
+    background: hsl(var(--muted));
+    color: hsl(var(--muted-foreground));
+  }
+
+  .private-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+    margin-top: 0.5rem;
+  }
+
+  .private-tag-pill {
+    font-size: 0.75rem;
+    padding: 0.2rem 0.625rem;
+    border-radius: 2rem;
+    background: hsl(var(--muted));
+    color: hsl(var(--muted-foreground));
+    border: 1px solid hsl(var(--border));
+    transition: color 0.2s, border-color 0.2s, background-color 0.2s;
+    text-decoration: none;
+  }
+
+  .private-tag-pill:hover {
+    color: hsl(var(--primary));
+    border-color: hsl(var(--primary) / 0.3);
+    background-color: hsl(var(--primary) / 0.05);
+  }
+
+  .private-footer {
+    padding-top: 1.5rem;
+    border-top: 1px solid hsl(var(--border) / 0.5);
+    margin-top: 1.5rem;
+  }
+
+  .private-back-link {
+    font-size: 0.875rem;
+    color: hsl(var(--muted-foreground));
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .private-back-link:hover {
+    color: hsl(var(--primary));
+  }
+</style>

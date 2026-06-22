@@ -1,0 +1,76 @@
+---
+import { Button } from 'astro-pure/user'
+import { cn } from 'astro-pure/utils'
+import BaseLayout from '@/layouts/BaseLayout.astro'
+import { isAuthenticated } from '@/utils/auth'
+
+export const prerender = false
+
+interface PostFrontmatter {
+  tags?: string[]
+}
+
+interface PostModule {
+  frontmatter: PostFrontmatter
+}
+
+let authenticated = isAuthenticated(Astro.request)
+
+if (!authenticated) {
+  return Astro.redirect('/private')
+}
+
+const postModules = import.meta.glob<PostModule>('/src/private-posts/[!_]*.md', { eager: true })
+
+const allPosts = Object.values(postModules)
+
+const tagCounts = allPosts.reduce((acc, mod) => {
+  const tags = mod.frontmatter.tags || []
+  tags.forEach(tag => {
+    acc[tag] = (acc[tag] || 0) + 1
+  })
+  return acc
+}, {} as Record<string, number>)
+
+const allTags = Object.entries(tagCounts).sort((a, b) => b[1] - a[1])
+
+const meta = {
+  description: "A list of all the topics I've written about in my private posts",
+  title: 'All Private Tags'
+}
+---
+
+<BaseLayout {meta}>
+  <Button title='Back' href='/private' variant='back' />
+  <main class='mt-6 lg:mt-10'>
+    <div id='content-header' class='animate'>
+      <h1 class='mb-6 text-3xl font-medium'>🔐 私密文章 Tags</h1>
+    </div>
+
+    <div id='content' class='animate'>
+      {
+        allTags.length > 0 ? (
+          <ul class='flex flex-wrap gap-4'>
+            {allTags.map(([tag, val]) => (
+              <li>
+                <Button
+                  href={`/private/tags/${tag}`}
+                  variant='pill'
+                  class={cn(
+                    'items-start gap-x-1',
+                    val > 2 ? 'rounded-xl px-3 py-1 text-xl' : val > 1 && 'text-lg'
+                  )}
+                >
+                  {tag}
+                  <span class={val > 2 ? 'text-base' : 'text-xs'}>{val}</span>
+                </Button>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p>No tags yet.</p>
+        )
+      }
+    </div>
+  </main>
+</BaseLayout>

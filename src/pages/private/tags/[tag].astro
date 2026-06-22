@@ -1,0 +1,171 @@
+---
+import { createHash } from 'node:crypto'
+import { Button, FormattedDate, Icon } from 'astro-pure/user'
+import BaseLayout from '@/layouts/BaseLayout.astro'
+
+// 禁止预渲染，确保每次请求都在服务端执行密码验证
+export const prerender = false
+
+import { isAuthenticated } from '@/utils/auth'
+
+// ============ 加载和过滤私密文章列表 ============
+interface PostFrontmatter {
+  title: string
+  description?: string
+  publishDate: string
+  tags?: string[]
+  language?: string
+  heroImage?: { src: string; color?: string }
+}
+
+interface PostModule {
+  frontmatter: PostFrontmatter
+  rawContent: () => string
+}
+
+const { tag } = Astro.params
+
+let authenticated = isAuthenticated(Astro.request)
+
+if (!authenticated) {
+  // 如果未认证，重定向到私密空间首页进行认证
+  return Astro.redirect('/private')
+}
+
+// 已认证
+const postModules = import.meta.glob<PostModule>('/src/private-posts/[!_]*.md', { eager: true })
+
+let posts = Object.entries(postModules)
+  .map(([path, mod]) => {
+    const slug = path.split('/').pop()?.replace('.md', '') || ''
+    
+    const rawContent = mod.rawContent ? mod.rawContent() : ''
+    const wordCount = rawContent.replace(/<[^>]*>/g, '').replace(/\s+/g, '').length
+    const minutesRead = Math.max(1, Math.ceil(wordCount / 300))
+
+    return {
+      slug,
+      title: mod.frontmatter.title || slug,
+      publishDate: mod.frontmatter.publishDate || '',
+      description: mod.frontmatter.description || '',
+      tags: mod.frontmatter.tags || [],
+      language: mod.frontmatter.language || '',
+      minutesRead
+    }
+  })
+  .sort((a, b) => new Date(b.publishDate).getTime() - new Date(a.publishDate).getTime())
+
+// 收集所有私密文章的标签并去重（用于侧边栏）
+const uniqueTags = [...new Set(posts.flatMap(p => p.tags))]
+
+// 过滤包含当前标签的文章
+const filteredPosts = posts.filter(post => post.tags.includes(tag || ''))
+
+if (filteredPosts.length === 0) {
+  // 标签不存在或无对应文章
+  return Astro.redirect('/private')
+}
+---
+
+<BaseLayout meta={{ title: `Tag: ${tag} - 私密空间` }}>
+  <main class="mt-6 lg:mt-10">
+    <div id='content-header' class='animate'>
+      <h1 class='mb-6 mt-6 text-3xl font-medium sm:mt-10'>🔐 Tags: #{tag}</h1>
+    </div>
+
+    <div class='grid gap-y-16 sm:grid-cols-[3fr_1fr] sm:gap-x-8'>
+      <section aria-label='Private posts list' class='animate' id='content'>
+        <div class='mb-3 flex flex-col justify-between text-sm sm:mb-5 sm:flex-row'>
+          <span class='text-muted-foreground'>
+            Showing {filteredPosts.length} private posts
+          </span>
+          <a aria-label='Back' href='/private' data-astro-prefetch>
+            ← 返回全部私密文章
+          </a>
+        </div>
+        <ul class='flex flex-col gap-y-4 text-start'>
+          {filteredPosts.map(post => (
+            <li class="post-preview">
+              <a
+                class="block w-full relative group rounded-2xl border bg-background transition-colors ease-in-out px-5 py-2.5 hover:bg-muted hover:text-primary max-sm:px-4 sm:py-5"
+                href={`/private/${post.slug}`}
+                data-astro-prefetch
+              >
+                <div class="relative flex flex-col gap-1" style="z-index:1">
+                  <FormattedDate class="min-w-[95px] text-xs" date={new Date(post.publishDate)} />
+                  
+                  <div class="flex justify-between flex-grow">
+                    <div class="font-medium">{post.title}</div>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="preview-redirect my-1 stroke-muted-foreground group-hover:stroke-primary"><line x1="5" y1="12" x2="19" y2="12" class="translate-x-4 scale-x-0 transition-all duration-300 ease-in-out group-hover:translate-x-1 group-hover:scale-x-100"></line><polyline points="12 5 19 12 12 19" class="translate-x-0 transition-all duration-300 ease-in-out group-hover:translate-x-1"></polyline></svg>
+                  </div>
+                  
+                  {post.description && (
+                    <p class="line-clamp-2 text-sm text-muted-foreground sm:line-clamp-3">
+                      {post.description}
+                    </p>
+                  )}
+                  <div class="py-2 flex items-center gap-2 text-sm italic leading-4 text-muted-foreground">
+                    <span class="flex items-center gap-1">
+                      <Icon name="time" class="size-4" />
+                      {post.minutesRead} min
+                    </span>
+                    {post.language && (
+                      <span class="flex items-center gap-1">
+                        <Icon name="earth" class="size-4" />
+                        {post.language}
+                      </span>
+                    )}
+                  </div>
+                  {post.tags.length > 0 && (
+                    <object title="Tags" aria-label="Tags" aria-labelledby="Tags">
+                      <ul class="tag-list mt-1 flex gap-2">
+                        {post.tags.map((tag) => (
+                          <li>
+                            <Button as="a" title={tag} href={`/private/tags/${tag}`} variant="pill" />
+                          </li>
+                        ))}
+                      </ul>
+                    </object>
+                  )}
+                </div>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      {uniqueTags.length > 0 && (
+        <aside class='animate' id='sidebar'>
+          <h2 class='mb-4 flex items-center text-lg font-medium'>
+            <Icon name='tag-2' class='me-2' />
+            Tags
+          </h2>
+          <ul class='text-bgColor flex flex-wrap gap-2'>
+            {uniqueTags.map((t) => (
+              <li>
+                <Button title={t} href={`/private/tags/${t}`} variant='pill' as='a' />
+              </li>
+            ))}
+          </ul>
+          <span class='mt-4 block sm:text-end'>
+            <a aria-label='View all blog categories' href='/private/tags' data-astro-prefetch>
+              View all →
+            </a>
+          </span>
+        </aside>
+      )}
+    </div>
+  </main>
+</BaseLayout>
+
+<style>
+  @media (max-width: 640px) {
+    .private-title {
+      font-size: 1.375rem;
+    }
+
+    .post-card {
+      padding: 0.875rem 1rem;
+    }
+  }
+</style>

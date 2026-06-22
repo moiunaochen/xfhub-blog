@@ -1,0 +1,22 @@
+---
+// 退出登录：清除认证 Cookie 并重定向回密码页
+export const prerender = false
+
+const isProd = import.meta.env.PROD
+const cookieFlags = [
+  'private_auth=',
+  'HttpOnly',
+  'Path=/private',
+  'SameSite=Strict',
+  'Max-Age=0', // 立即过期，等效于删除 Cookie
+  isProd ? 'Secure' : ''
+].filter(Boolean).join('; ')
+
+return new Response(null, {
+  status: 302,
+  headers: {
+    'Location': '/private',
+    'Set-Cookie': cookieFlags
+  }
+})
+---
