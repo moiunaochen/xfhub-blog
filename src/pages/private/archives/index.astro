@@ -1,8 +1,7 @@
 ---
-import { Button } from 'astro-pure/user'
+import { Button, FormattedDate } from 'astro-pure/user'
 import BaseLayout from '@/layouts/BaseLayout.astro'
 import { isAuthenticated } from '@/utils/auth'
-import { FormattedDate, Icon } from 'astro-pure/user'
 
 export const prerender = false
 
@@ -19,7 +18,7 @@ interface PostModule {
   rawContent: () => string
 }
 
-let authenticated = isAuthenticated(Astro.request)
+const authenticated = isAuthenticated(Astro.request)
 
 if (!authenticated) {
   return Astro.redirect('/private')
@@ -30,28 +29,18 @@ const postModules = import.meta.glob<PostModule>('/src/private-posts/[!_]*.md', 
 const allPosts = Object.entries(postModules)
   .map(([path, mod]) => {
     const slug = path.split('/').pop()?.replace('.md', '') || ''
-    const rawContent = mod.rawContent ? mod.rawContent() : ''
-    const wordCount = rawContent.replace(/<[^>]*>/g, '').replace(/\s+/g, '').length
-    const minutesRead = Math.max(1, Math.ceil(wordCount / 300))
-
     return {
       slug,
       title: mod.frontmatter.title || slug,
       publishDate: mod.frontmatter.publishDate || '',
-      description: mod.frontmatter.description || '',
-      tags: mod.frontmatter.tags || [],
-      language: mod.frontmatter.language || '',
-      minutesRead
     }
   })
   .sort((a, b) => new Date(b.publishDate).getTime() - new Date(a.publishDate).getTime())
 
-// 分组逻辑
+// 按年份分组
 const allPostsByYear = allPosts.reduce((acc, post) => {
   const year = new Date(post.publishDate).getFullYear().toString()
-  if (!acc.has(year)) {
-    acc.set(year, [])
-  }
+  if (!acc.has(year)) acc.set(year, [])
   acc.get(year)!.push(post)
   return acc
 }, new Map<string, typeof allPosts>())
@@ -89,15 +78,14 @@ const meta = {
             </p>
             <ul class='flex flex-col text-start'>
               {posts.map((post) => (
-                <li class="post-preview border-0 bg-transparent py-2">
+                <li class="post-preview">
                   <a
-                    class="block w-full relative group rounded-2xl border bg-background transition-colors ease-in-out px-5 py-2.5 hover:bg-muted hover:text-primary max-sm:px-4 sm:py-5 border-0 bg-transparent py-2"
+                    class="block w-full relative group rounded-2xl border-0 bg-transparent transition-colors ease-in-out px-5 py-2.5 hover:bg-muted hover:text-primary max-sm:px-4"
                     href={`/private/${post.slug}`}
                     data-astro-prefetch
                   >
                     <div class="relative flex flex-col gap-1 sm:flex-row sm:items-center" style="z-index:1">
                       <FormattedDate class="min-w-[95px] text-xs" date={new Date(post.publishDate)} />
-                      
                       <div class="flex justify-between flex-grow">
                         <div class="font-medium">{post.title}</div>
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="preview-redirect my-1 stroke-muted-foreground group-hover:stroke-primary"><line x1="5" y1="12" x2="19" y2="12" class="translate-x-4 scale-x-0 transition-all duration-300 ease-in-out group-hover:translate-x-1 group-hover:scale-x-100"></line><polyline points="12 5 19 12 12 19" class="translate-x-0 transition-all duration-300 ease-in-out group-hover:translate-x-1"></polyline></svg>
@@ -120,8 +108,6 @@ const meta = {
   }
   .post-preview:hover > a {
     background-color: var(--preview-highlight-bg, hsl(var(--muted) / var(--un-bg-opacity, 1))) !important;
-  }
-  .post-preview:hover > a {
     color: var(--preview-highlight-final) !important;
   }
   .post-preview:hover > a .preview-redirect {
