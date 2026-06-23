@@ -1,7 +1,7 @@
 ---
 import { Button, FormattedDate } from 'astro-pure/user'
 import BaseLayout from '@/layouts/BaseLayout.astro'
-import { isAuthenticated } from '@/utils/auth'
+import { isAuthenticated, getPrivateSlug } from '@/utils/auth'
 
 export const prerender = false
 
@@ -24,11 +24,11 @@ if (!authenticated) {
   return Astro.redirect('/private')
 }
 
-const postModules = import.meta.glob<PostModule>('/src/private-posts/[!_]*.md', { eager: true })
+const postModules = import.meta.glob<PostModule>('/src/private-posts/**/[!_]*.md', { eager: true })
 
 const allPosts = Object.entries(postModules)
   .map(([path, mod]) => {
-    const slug = path.split('/').pop()?.replace('.md', '') || ''
+    const slug = getPrivateSlug(path)
     return {
       slug,
       title: mod.frontmatter.title || slug,

@@ -20,7 +20,7 @@ if (!authenticated) {
   return Astro.redirect('/private')
 }
 
-const postModules = import.meta.glob<PostModule>('/src/private-posts/[!_]*.md', { eager: true })
+const postModules = import.meta.glob<PostModule>('/src/private-posts/**/[!_]*.md', { eager: true })
 
 const allPosts = Object.values(postModules)
 

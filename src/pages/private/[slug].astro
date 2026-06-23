@@ -1,35 +1,21 @@
 ---
-import { createHash } from 'node:crypto'
+import { Image } from 'astro:assets'
 import type { MarkdownHeading } from 'astro'
 
 // Plugin styles
 import 'katex/dist/katex.min.css'
 
 import { MediumZoom } from 'astro-pure/advanced'
-import { TOC } from 'astro-pure/components/pages'
+import { Copyright, ArticleBottom, TOC } from 'astro-pure/components/pages'
+import { FormattedDate, Icon } from 'astro-pure/user'
+import { Comment, PageInfo } from '@/components/waline'
 import config from 'virtual:config'
 import PageLayout from '@/layouts/ContentLayout.astro'
 
 // 禁止预渲染，确保每次请求都在服务端验证身份
 export const prerender = false
 
-// ============ 认证验证 ============
-const PRIVATE_SECRET = import.meta.env.PRIVATE_SECRET || 'default-secret'
-
-function getAuthToken(secret: string): string {
-  return createHash('sha256').update('private-auth:' + secret).digest('hex')
-}
-
-function isAuthenticated(request: Request): boolean {
-  const cookieHeader = request.headers.get('cookie') || ''
-  const cookies = Object.fromEntries(
-    cookieHeader.split(';').map(c => {
-      const [key, ...val] = c.trim().split('=')
-      return [key, val.join('=')]
-    })
-  )
-  return cookies['private_auth'] === getAuthToken(PRIVATE_SECRET)
-}
+import { isAuthenticated, getPrivateSlug } from '@/utils/auth'
 
 // 未认证 → 重定向到密码页
 if (!isAuthenticated(Astro.request)) {
@@ -43,19 +29,23 @@ interface PostFrontmatter {
   publishDate: string
   tags?: string[]
   language?: string
-  heroImage?: { src: string; color?: string }
+  heroImage?: { src: string; color?: string; alt?: string }
+  draft?: boolean
+  comment?: boolean
+  updatedDate?: string
 }
 
 interface PostModule {
   frontmatter: PostFrontmatter
   Content: any
   getHeadings: () => MarkdownHeading[]
+  rawContent: () => string
 }
 
 const { slug } = Astro.params
 
-const postModules = import.meta.glob<PostModule>('/src/private-posts/[!_]*.md', { eager: true })
-const entry = Object.entries(postModules).find(([path]) => path.endsWith(`/${slug}.md`))
+const postModules = import.meta.glob<PostModule>('/src/private-posts/**/[!_]*.md', { eager: true })
+const entry = Object.entries(postModules).find(([path]) => getPrivateSlug(path) === slug)
 
 if (!entry) {
   return Astro.redirect('/private')
@@ -64,33 +54,149 @@ if (!entry) {
 const [, mod] = entry
 const { frontmatter, Content } = mod
 const headings = mod.getHeadings ? mod.getHeadings() : []
+
+// ============ 解析题图 (heroImage) ============
+let resolvedHeroImage: ImageMetadata | undefined
+if (frontmatter.heroImage?.src) {
+  const imageModules = import.meta.glob<{ default: ImageMetadata }>('/src/private-posts/**/*.{jpeg,jpg,png,gif,webp}')
+  let src = frontmatter.heroImage.src
+  if (src.startsWith('./') || src.startsWith('../')) {
+    const dir = entry[0].split('/').slice(0, -1).join('/')
+    if (src.startsWith('./')) src = src.slice(2)
+    const absoluteImagePath = `${dir}/${src}`
+    if (imageModules[absoluteImagePath]) {
+      resolvedHeroImage = (await imageModules[absoluteImagePath]()).default
+    }
+  }
+}
+
+// ============ 获取其他文章用于 Bottom 和 阅读时间 ============
+const rawContent = mod.rawContent ? mod.rawContent() : ''
+const wordCount = rawContent.replace(/<[^>]*>/g, '').replace(/\s+/g, '').length
+const minutesRead = Math.max(1, Math.ceil(wordCount / 300))
+
+const allPostsForBottom = Object.entries(postModules).map(([path, m]) => {
+  const s = getPrivateSlug(path)
+  return {
+    id: s,
+    data: {
+      ...m.frontmatter,
+      title: m.frontmatter.title || s,
+      publishDate: new Date(m.frontmatter.publishDate)
+    }
+  } as any
+}).sort((a, b) => b.data.publishDate.getTime() - a.data.publishDate.getTime())
+
+const dateTimeOptions: Intl.DateTimeFormatOptions = {
+  month: 'short'
+}
 ---
 
 <PageLayout meta={{ title: frontmatter.title }} back='/private'>
   {!!headings.length && <TOC {headings} slot='sidebar' />}
 
   <Fragment slot='header'>
-    <div class="private-badge-row">
-      <span class="private-badge">🔒 私密文章</span>
-      {frontmatter.language && <span class="private-lang">{frontmatter.language}</span>}
-    </div>
-    <h1 class='text-2xl font-medium sm:mb-2 sm:text-3xl'>{frontmatter.title}</h1>
-    <p class='text-xs text-muted-foreground italic'>
-      {frontmatter.publishDate}
-      {frontmatter.description && <span> · {frontmatter.description}</span>}
-    </p>
-    {frontmatter.tags && frontmatter.tags.length > 0 && (
-      <div class="private-tags">
-        {frontmatter.tags.map((tag) => (
-          <a href={`/private/tags/${tag}`} class="private-tag-pill z-10 hover:bg-primary/20">{tag}</a>
-        ))}
+    {resolvedHeroImage && (
+      <div class='hero-image relative mb-6'>
+        <Image
+          alt={frontmatter.title}
+          class='cover-image relative z-10 h-auto w-full max-w-[65ch] rounded-2xl object-contain'
+          fetchpriority='high'
+          loading='eager'
+          src={resolvedHeroImage}
+        />
+        <Image
+          alt='Blur image'
+          fetchpriority='high'
+          loading='eager'
+          id='blurImage'
+          class='absolute end-0 top-4 z-0 mt-0 h-full max-w-[65ch] rounded-3xl opacity-60 transition-opacity duration-300'
+          src={resolvedHeroImage}
+        />
       </div>
     )}
+
+    {frontmatter.draft ? <span class='text-red-500'>(Draft)</span> : null}
+
+    <div class='article-info max-lg:mx-auto'>
+      <div class='flex flex-wrap gap-x-4 gap-y-2 text-xs leading-6 text-muted-foreground'>
+        <div class="flex items-center gap-1">
+          <span class="px-1.5 py-0.5 rounded-md bg-primary text-primary-foreground text-[10px] font-bold tracking-wider relative -top-[1px]">🔒 私密</span>
+        </div>
+        <div class='flex items-center gap-1'>
+          <Icon name='calendar' class='size-5' />
+          <FormattedDate class='font-sans' date={new Date(frontmatter.publishDate)} dateTimeOptions={dateTimeOptions} />
+          {
+            frontmatter.updatedDate && (
+              <div class='flex items-center gap-1'>
+                <span> / </span>
+                <span>
+                  Update
+                  <FormattedDate
+                    class='font-sans'
+                    date={new Date(frontmatter.updatedDate)}
+                    dateTimeOptions={dateTimeOptions}
+                  />
+                </span>
+              </div>
+            )
+          }
+        </div>
+        <div class='flex items-center gap-1'>
+          <Icon name='time' class='size-5' />
+          {minutesRead} min
+        </div>
+        {
+          frontmatter.language && (
+            <span class='flex items-center gap-1'>
+              <Icon name='earth' class='size-5' />
+              {frontmatter.language}
+            </span>
+          )
+        }
+        {
+          !!frontmatter.tags?.length && (
+            <span class='flex items-center gap-1'>
+              <Icon name='hashtag' class='size-5' />
+              {frontmatter.tags.map((tag: string, i: number) => (
+                <div class="inline-flex">
+                  <a
+                    aria-label={`View more blogs with the tag ${tag}`}
+                    class='hover:underline hover:underline-offset-4'
+                    href={`/private/tags/${tag}`}
+                  >
+                    {tag}
+                  </a>
+                  {i < (frontmatter.tags?.length ?? 0) - 1 && '/'}
+                </div>
+              ))}
+            </span>
+          )
+        }
+      </div>
+
+      <h1 class='mt-4 text-2xl font-medium sm:mb-2 sm:mt-6 sm:text-3xl'>
+        {frontmatter.title}
+      </h1>
+
+      <div class='mt-3 italic'>
+        <blockquote class='text-sm text-muted-foreground'><q>{frontmatter.description}</q></blockquote>
+        
+        {!frontmatter.draft && frontmatter.comment && <PageInfo comment class='mt-1' />}
+      </div>
+    </div>
+
+    <div class='mt-4 w-1/2 border-t max-md:mx-auto sm:mt-6 sm:w-1/3'></div>
   </Fragment>
 
   <Content />
 
   <Fragment slot='bottom'>
+    <Copyright data={{ ...frontmatter, heroImage: frontmatter.heroImage ? { src: resolvedHeroImage || frontmatter.heroImage.src } : undefined } as any} />
+    <ArticleBottom collections={allPostsForBottom} id={slug || ''} class='mt-3 sm:mt-6' />
+    
+    {!frontmatter.draft && frontmatter.comment && <Comment class='mt-3 sm:mt-6' />}
+
     <div class="private-footer">
       <a href="/private" class="private-back-link">
         ← 返回私密文章列表
@@ -101,7 +207,33 @@ const headings = mod.getHeadings ? mod.getHeadings() : []
 
 {config.integ.mediumZoom.enable && <MediumZoom />}
 
+<script>
+  const viewportHeight = window.innerHeight
+  const threshold1 = viewportHeight / 9
+  const threshold2 = (viewportHeight * 2) / 9
+  const threshold3 = (viewportHeight * 3) / 9
+  const image = document.getElementById('blurImage') as HTMLImageElement
+
+  if (image) {
+    window.addEventListener('scroll', () => {
+      const scrollDistance = window.scrollY
+      if (scrollDistance >= threshold3) {
+        image.style.opacity = '0.15'
+      } else if (scrollDistance >= threshold2) {
+        image.style.opacity = '0.3'
+      } else if (scrollDistance >= threshold1) {
+        image.style.opacity = '0.45'
+      }
+    })
+  }
+</script>
+
 <style>
+  #blurImage {
+    --un-blur: blur(24px);
+    filter: var(--un-blur);
+  }
+
   .private-badge-row {
     display: flex;
     align-items: center;

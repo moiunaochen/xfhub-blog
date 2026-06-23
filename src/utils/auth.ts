@@ -17,3 +17,14 @@ export function isAuthenticated(request: Request): boolean {
   )
   return cookies['private_auth'] === getAuthToken(PRIVATE_SECRET)
 }
+
+export function getPrivateSlug(path: string): string {
+  let slug = path.split('/').pop()?.replace('.md', '') || ''
+  if (slug === 'index') {
+    const parts = path.split('/')
+    if (parts.length > 2) {
+      slug = parts[parts.length - 2]
+    }
+  }
+  return slug
+}

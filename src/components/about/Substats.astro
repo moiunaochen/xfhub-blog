@@ -22,14 +22,24 @@ async function fetchCount(item: SubstatsItem) {
   if (!item.api) return
   try {
     const response = await fetch(`https://api.swo.moe/stats/${item.api}`)
-    const data = await response.json()
-    if (data.failed) {
-      throw new Error(data.message)
-    } else {
-      item.count = data.count
+    if (!response.ok) {
+      console.warn(`[Substats] API returned ${response.status} for ${item.api}`)
+      return
+    }
+
+    const text = await response.text()
+    try {
+      const data = JSON.parse(text)
+      if (data.failed) {
+        console.warn(`[Substats] API failed for ${item.api}: ${data.message}`)
+      } else {
+        item.count = data.count
+      }
+    } catch (e) {
+      console.warn(`[Substats] Invalid JSON response for ${item.api}. API might be down.`)
     }
   } catch (error) {
-    console.error(`Error in Substats fetching: ${error}`)
+    console.error(`[Substats] Error fetching ${item.api}: ${(error as Error).message}`)
   }
 }
 

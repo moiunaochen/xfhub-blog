@@ -1,11 +1,13 @@
 ---
+import { Image } from 'astro:assets'
 import { Button, FormattedDate, Icon } from 'astro-pure/user'
+import { cn } from 'astro-pure/utils'
 import BaseLayout from '@/layouts/BaseLayout.astro'
 
 // 禁止预渲染，确保每次请求都在服务端执行密码验证
 export const prerender = false
 
-import { isAuthenticated, getAuthToken, PRIVATE_PASSWORD, PRIVATE_SECRET } from '@/utils/auth'
+import { isAuthenticated, getAuthToken, getPrivateSlug, PRIVATE_PASSWORD, PRIVATE_SECRET } from '@/utils/auth'
 
 // ============ 处理 POST 请求（密码提交） ============
 let error = ''
@@ -58,13 +60,41 @@ interface PostModule {
   rawContent: () => string
 }
 
-let posts: { slug: string; title: string; publishDate: string; description: string; tags: string[]; language: string; minutesRead: number }[] = []
+let posts: { 
+  slug: string; 
+  title: string; 
+  publishDate: string; 
+  description: string; 
+  tags: string[]; 
+  language: string; 
+  minutesRead: number;
+  heroImage?: { src: string; color?: string; alt?: string };
+  resolvedHeroImage?: ImageMetadata;
+}[] = []
 
 if (authenticated) {
-  const postModules = import.meta.glob<PostModule>('/src/private-posts/[!_]*.md', { eager: true })
-  posts = Object.entries(postModules)
-    .map(([path, mod]) => {
-      const slug = path.split('/').pop()?.replace('.md', '') || ''
+  const postModules = import.meta.glob<PostModule>('/src/private-posts/**/[!_]*.md', { eager: true })
+  const imageModules = import.meta.glob<{ default: ImageMetadata }>('/src/private-posts/**/*.{jpeg,jpg,png,gif,webp}')
+  
+  const entries = Object.entries(postModules)
+  posts = await Promise.all(
+    entries.map(async ([path, mod]) => {
+      const slug = getPrivateSlug(path)
+      
+      // 解析题图
+      let resolvedHeroImage: ImageMetadata | undefined
+      const heroImage = mod.frontmatter.heroImage
+      if (heroImage?.src) {
+        let src = heroImage.src
+        if (src.startsWith('./') || src.startsWith('../')) {
+          const dir = path.split('/').slice(0, -1).join('/')
+          if (src.startsWith('./')) src = src.slice(2)
+          const absoluteImagePath = `${dir}/${src}`
+          if (imageModules[absoluteImagePath]) {
+            resolvedHeroImage = (await imageModules[absoluteImagePath]()).default
+          }
+        }
+      }
       
       // 简易阅读时间计算（按每分钟 300 字计算）
       const rawContent = mod.rawContent ? mod.rawContent() : ''
@@ -78,10 +108,13 @@ if (authenticated) {
         description: mod.frontmatter.description || '',
         tags: mod.frontmatter.tags || [],
         language: mod.frontmatter.language || '',
-        minutesRead
+        minutesRead,
+        heroImage,
+        resolvedHeroImage
       }
     })
-    .sort((a, b) => new Date(b.publishDate).getTime() - new Date(a.publishDate).getTime())
+  )
+  posts.sort((a, b) => new Date(b.publishDate).getTime() - new Date(a.publishDate).getTime())
 }
 
 // 收集所有私密文章的标签并去重
@@ -114,12 +147,30 @@ const uniqueTags = [...new Set(posts.flatMap(p => p.tags))]
               </div>
               <ul class='flex flex-col gap-y-4 text-start'>
                 {posts.map((post) => (
-                  <li class="post-preview">
+                  <li 
+                    class="post-preview"
+                    style={
+                      post.heroImage?.color 
+                        ? `--preview-highlight:color-mix(in srgb,${post.heroImage.color} 40%,hsl(var(--foreground)/var(--un-text-opacity,1))); --preview-highlight-bg:hsl(from ${post.heroImage.color} h s l/20%)` 
+                        : undefined
+                    }
+                  >
                     <a
-                      class="block w-full relative group rounded-2xl border bg-background transition-colors ease-in-out px-5 py-2.5 hover:bg-muted hover:text-primary max-sm:px-4 sm:py-5"
+                      class={cn(
+                        "block w-full relative group rounded-2xl border bg-background transition-colors ease-in-out px-5 py-2.5 hover:bg-muted hover:text-primary max-sm:px-4 sm:py-5",
+                        post.resolvedHeroImage && "max-md:pt-24"
+                      )}
                       href={`/private/${post.slug}`}
                       data-astro-prefetch
                     >
+                      {post.resolvedHeroImage && (
+                        <Image
+                          alt={post.heroImage?.alt || post.title}
+                          class='cover-image absolute end-0 top-0 z-0 h-2/3 w-full rounded-2xl object-cover opacity-50 transition-opacity duration-300 group-hover:opacity-70 md:h-full md:w-3/5'
+                          loading='eager'
+                          src={post.resolvedHeroImage}
+                        />
+                      )}
                       <div class="relative flex flex-col gap-1" style="z-index:1">
                         <FormattedDate class="min-w-[95px] text-xs" date={new Date(post.publishDate)} />
                         
@@ -129,7 +180,10 @@ const uniqueTags = [...new Set(posts.flatMap(p => p.tags))]
                         </div>
                         
                         {post.description && (
-                          <p class="line-clamp-2 text-sm text-muted-foreground sm:line-clamp-3">
+                          <p class={cn(
+                            "line-clamp-2 text-sm text-muted-foreground sm:line-clamp-3",
+                            post.resolvedHeroImage && "sm:me-24"
+                          )}>
                             {post.description}
                           </p>
                         )}
@@ -231,16 +285,32 @@ const uniqueTags = [...new Set(posts.flatMap(p => p.tags))]
   .post-preview {
     --preview-highlight-final: var(--preview-highlight, hsl(var(--primary) / var(--un-text-opacity, 1)));
   }
-  .post-preview:hover > a,
-  .post-preview:hover .tag-list a {
-    background-color: var(--preview-highlight-bg, hsl(var(--muted) / var(--un-bg-opacity, 1))) !important;
+  .post-preview:hover {
+    & > a,
+    & .private-tag-pill {
+      background-color: var( --preview-highlight-bg, hsl(var(--muted) / var(--un-bg-opacity, 1))) !important;
+    }
+    & > a,
+    & .private-tag-pill:hover {
+      color: var(--preview-highlight-final) !important;
+    }
+    & > a .preview-redirect {
+      stroke: var(--preview-highlight-final) !important;
+    }
   }
-  .post-preview:hover > a,
-  .post-preview:hover .tag-list a:hover {
-    color: var(--preview-highlight-final) !important;
+
+  .cover-image {
+    -webkit-mask-image: -webkit-linear-gradient(left, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 1) 100%);
+    -webkit-mask-image: linear-gradient(to right, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 1) 100%);
+    mask-image: linear-gradient(to right, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 1) 100%);
   }
-  .post-preview:hover > a .preview-redirect {
-    stroke: var(--preview-highlight-final) !important;
+
+  @media (max-width: 768px) {
+    .cover-image {
+      -webkit-mask-image: -webkit-linear-gradient(bottom, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 1) 100%);
+      -webkit-mask-image: linear-gradient(to top, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 1) 100%);
+      mask-image: linear-gradient(to top, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 1) 100%);
+    }
   }
 
   /* ===== 密码输入界面 ===== */
